@@ -9,6 +9,7 @@ Docker image for [Nezha Agent](https://github.com/nezhahq/agent), the agent comp
 
 - Nezha Agent: `2.1.1`
 - Base image: `alpine:3.23`
+- Includes Docker CLI for dashboard-triggered container operations when the Docker socket is mounted.
 - Release artifacts are verified with upstream `checksums.txt` during build.
 
 ## Supported platforms

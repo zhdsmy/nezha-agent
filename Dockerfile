@@ -30,7 +30,7 @@ LABEL org.opencontainers.image.title="nezha-agent" \
       org.opencontainers.image.source="https://github.com/zhdsmy/nezha-agent" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-RUN apk add --no-cache ca-certificates iproute2 iputils procps
+RUN apk add --no-cache ca-certificates docker-cli iproute2 iputils procps
 
 COPY --from=downloader /usr/bin/nezha-agent /usr/bin/nezha-agent
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
