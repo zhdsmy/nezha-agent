@@ -1,0 +1,67 @@
+name: Check Upstream Version
+
+on:
+  schedule:
+    - cron: "29 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  IMAGE_NAME: nezha-agent
+  UPSTREAM_REPO: nezhahq/agent
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check latest upstream release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CURRENT_VERSION="$(tr -d '[:space:]' < VERSION)"
+          LATEST_TAG="$(gh release view --repo "${UPSTREAM_REPO}" --json tagName -q .tagName)"
+          LATEST_VERSION="${LATEST_TAG#v}"
+
+          if [[ -z "${CURRENT_VERSION}" || -z "${LATEST_VERSION}" ]]; then
+            echo "Unable to determine current or latest version" >&2
+            exit 1
+          fi
+
+          echo "current=${CURRENT_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "latest=${LATEST_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "latest_tag=${LATEST_TAG}" >> "${GITHUB_OUTPUT}"
+
+          if [[ "${CURRENT_VERSION}" == "${LATEST_VERSION}" ]]; then
+            echo "Already up to date: ${CURRENT_VERSION}"
+            exit 0
+          fi
+
+          perl -0pi -e "s/\Q${CURRENT_VERSION}\E/${LATEST_VERSION}/g" \
+            VERSION Dockerfile README.md
+
+      - name: Create update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: automation/update-nezha-agent
+          delete-branch: true
+          commit-message: Update nezha-agent to ${{ steps.upstream.outputs.latest_tag }}
+          title: Update nezha-agent to ${{ steps.upstream.outputs.latest_tag }}
+          body: |
+            Automated upstream version update.
+
+            - Current: ${{ steps.upstream.outputs.current }}
+            - Latest: ${{ steps.upstream.outputs.latest_tag }}
+            - Source: https://github.com/nezhahq/agent/releases/latest
+          labels: |
+            dependencies
+            docker
