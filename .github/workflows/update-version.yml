@@ -52,6 +52,7 @@ jobs:
       - name: Create update pull request
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.AUTOMATION_TOKEN }}
           branch: automation/update-nezha-agent
           delete-branch: true
           commit-message: Update nezha-agent to ${{ steps.upstream.outputs.latest_tag }}
