@@ -111,7 +111,7 @@ jobs:
       - name: Enable auto-merge
         env:
           GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
-        run: gh pr merge "${{ github.event.pull_request.number }}" --auto --squash --delete-branch
+        run: gh pr merge "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --auto --squash --delete-branch
 
   build:
     if: github.event_name != 'pull_request'
