@@ -3,7 +3,7 @@
 FROM alpine:3.23 AS downloader
 
 ARG TARGETARCH
-ARG VERSION=2.1.1
+ARG VERSION=2.2.1
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
@@ -22,7 +22,7 @@ RUN apk add --no-cache ca-certificates unzip wget \
 
 FROM alpine:3.23
 
-ARG VERSION=2.1.1
+ARG VERSION=2.2.1
 
 LABEL org.opencontainers.image.title="nezha-agent" \
       org.opencontainers.image.description="Docker image for Nezha Agent" \
