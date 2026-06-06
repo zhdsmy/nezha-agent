@@ -7,7 +7,7 @@ Docker image for [Nezha Agent](https://github.com/nezhahq/agent), the agent comp
 
 ## Included version
 
-- Nezha Agent: `2.2.1`
+- Nezha Agent: `2.2.2`
 - Base image: `alpine:3.23`
 - Includes Docker CLI for dashboard-triggered container operations when the Docker socket is mounted.
 - Release artifacts are verified with upstream `checksums.txt` during build.
@@ -20,7 +20,7 @@ Docker image for [Nezha Agent](https://github.com/nezhahq/agent), the agent comp
 ## Tags
 
 - `latest`: latest build from the default branch
-- `2.2.1`: current Nezha Agent version build
+- `2.2.2`: current Nezha Agent version build
 - `2.1`: major/minor tag for versioned releases
 
 ## Configuration
@@ -92,7 +92,7 @@ services:
 
 ```bash
 docker build \
-  --build-arg VERSION=2.2.1 \
+  --build-arg VERSION=2.2.2 \
   -t domizhang/nezha-agent:local .
 ```
 
