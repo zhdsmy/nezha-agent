@@ -7,5 +7,11 @@ if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
-# shellcheck disable=SC2086
-exec /usr/bin/nezha-agent -c "${CONFIG_FILE}" ${NEZHA_AGENT_ARGS:-}
+if [ -n "${NEZHA_AGENT_ARGS:-}" ]; then
+  set -f
+  # shellcheck disable=SC2086
+  set -- ${NEZHA_AGENT_ARGS}
+  set +f
+fi
+
+exec /usr/bin/nezha-agent -c "${CONFIG_FILE}" "$@"
