@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM alpine:3.23 AS downloader
+FROM alpine:3.24 AS downloader
 
 ARG TARGETARCH
 ARG VERSION=2.2.2
@@ -20,7 +20,7 @@ RUN apk add --no-cache ca-certificates unzip wget \
     && unzip -q "/tmp/${AGENT_FILE}" -d /tmp/nezha-agent \
     && install -m 0755 /tmp/nezha-agent/nezha-agent /usr/bin/nezha-agent
 
-FROM alpine:3.23
+FROM alpine:3.24
 
 ARG VERSION=2.2.2
 
