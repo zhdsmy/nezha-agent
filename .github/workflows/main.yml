@@ -101,7 +101,7 @@ jobs:
           sarif_file: trivy-results.sarif
 
   automerge:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'app/dependabot'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     needs: validate
     runs-on: ubuntu-latest
     permissions:

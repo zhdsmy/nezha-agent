@@ -1,0 +1,72 @@
+name: Dependabot Auto Merge
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  dependabot-automerge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v3.1.0
+
+      - name: Check update eligibility
+        id: eligibility
+        shell: bash
+        run: |
+          case "${{ steps.dependabot-metadata.outputs.package-ecosystem }}" in
+            docker|github-actions|github_actions) ;;
+            *)
+              echo "eligible=false" >> "${GITHUB_OUTPUT}"
+              echo "Unsupported ecosystem: ${{ steps.dependabot-metadata.outputs.package-ecosystem }}"
+              exit 0
+              ;;
+          esac
+
+          case "${{ steps.dependabot-metadata.outputs.update-type }}" in
+            version-update:semver-patch|version-update:semver-minor)
+              echo "eligible=true" >> "${GITHUB_OUTPUT}"
+              ;;
+            *)
+              echo "eligible=false" >> "${GITHUB_OUTPUT}"
+              echo "Skipping update type: ${{ steps.dependabot-metadata.outputs.update-type }}"
+              ;;
+          esac
+
+      - name: Wait for required checks
+        if: steps.eligibility.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required --watch --fail-fast --interval 10
+
+      - name: Approve and enable auto-merge
+        if: steps.eligibility.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr review "${PR_NUMBER}" --repo "${REPO}" --approve \
+            --body "Auto-approved Dependabot patch/minor update after required checks passed."
+          gh pr merge "${PR_NUMBER}" --repo "${REPO}" --squash --auto --delete-branch
