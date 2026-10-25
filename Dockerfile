@@ -1,24 +1,20 @@
 # syntax=docker/dockerfile:1
 
-FROM alpine:3.24 AS downloader
-
+# Rebuild the same release with Go's fixed x509 verifier.
+# hadolint ignore=DL3029
+FROM --platform=$BUILDPLATFORM golang:1.26.10-alpine3.24 AS builder
 ARG TARGETARCH
 ARG VERSION=2.4.0
-
-SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
-
-RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle unzip wget \
-    && case "${TARGETARCH}" in \
-         amd64|arm64) AGENT_ARCH="${TARGETARCH}" ;; \
-         *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
-       esac \
-    && AGENT_FILE="nezha-agent_linux_${AGENT_ARCH}.zip" \
-    && wget -qO "/tmp/${AGENT_FILE}" "https://github.com/nezhahq/agent/releases/download/v${VERSION}/${AGENT_FILE}" \
-    && wget -qO /tmp/checksums.txt "https://github.com/nezhahq/agent/releases/download/v${VERSION}/checksums.txt" \
-    && AGENT_SHA256="$(awk -v file="${AGENT_FILE}" '$2 == file { print $1 }' /tmp/checksums.txt)" \
-    && echo "${AGENT_SHA256}  /tmp/${AGENT_FILE}" | sha256sum -c - \
-    && unzip -q "/tmp/${AGENT_FILE}" -d /tmp/nezha-agent \
-    && install -m 0755 /tmp/nezha-agent/nezha-agent /usr/bin/nezha-agent
+ARG SOURCE_REVISION=2c33791c40c81154da4eb972f1257faa8c4180e8
+ARG SOURCE_SHA256=2c5bc3ca28cf34a429814114ae12d0e6bf2b2ea5da792239128247edebc2f55b
+RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle
+ADD --checksum=sha256:${SOURCE_SHA256} https://codeload.github.com/nezhahq/agent/tar.gz/${SOURCE_REVISION} /tmp/source.tar.gz
+RUN mkdir /src && tar -xzf /tmp/source.tar.gz --strip-components=1 -C /src
+WORKDIR /src
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOTOOLCHAIN=local GOOS=linux GOARCH=${TARGETARCH} \
+    go build -trimpath -ldflags="-s -w -X github.com/nezhahq/agent/pkg/monitor.Version=${VERSION} -X main.arch=${TARGETARCH}" -o /usr/bin/nezha-agent ./cmd/agent
 
 FROM alpine:3.24 AS runtime
 
@@ -32,7 +28,7 @@ LABEL org.opencontainers.image.title="nezha-agent" \
 
 RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle docker-cli iproute2 iputils procps libcrypto3 libssl3
 
-COPY --from=downloader /usr/bin/nezha-agent /usr/bin/nezha-agent
+COPY --from=builder /usr/bin/nezha-agent /usr/bin/nezha-agent
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /etc/nezha-agent /var/lib/nezha-agent \

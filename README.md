@@ -112,3 +112,5 @@ This repository only builds a Docker image. Nezha Agent is distributed under the
 ## CA security
 
 Builds refresh the runtime CA packages and reject empty bundles or the two roots removed in October 2026. The application version remains unchanged; both `ca-certificates` and `ca-certificates-bundle` are upgraded before publication.
+
+The 2.4.0 source is checksum-pinned and rebuilt with Go 1.26.10 to fix CVE-2026-111943; it does not change the Agent application version. Upstream updates refresh both source pins.
