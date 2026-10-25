@@ -108,3 +108,7 @@ The Nezha Agent version is pinned in `VERSION`, `Dockerfile`, and `README.md`. T
 ## License
 
 This repository only builds a Docker image. Nezha Agent is distributed under the Apache-2.0 license.
+
+## CA security
+
+Builds refresh the runtime CA packages and reject empty bundles or the two roots removed in October 2026. The application version remains unchanged; both `ca-certificates` and `ca-certificates-bundle` are upgraded before publication.

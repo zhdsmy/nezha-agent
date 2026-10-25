@@ -60,14 +60,19 @@ jobs:
         id: smoke_build
         run: |
           docker buildx build \
+            --pull \
+            --no-cache-filter runtime \
             --load \
             --platform linux/amd64 \
-            --tag local/${IMAGE_NAME}:ci \
+            --tag "local/${IMAGE_NAME}:ci" \
             --build-arg VERSION=${{ steps.version.outputs.version }} \
             .
 
       - name: Smoke test
-        run: docker run --rm local/${IMAGE_NAME}:ci nezha-agent --version
+        run: docker run --rm "local/${IMAGE_NAME}:ci" nezha-agent --version
+
+      - name: Verify effective CA trust
+        run: python3 tests/check_ca.py "local/${IMAGE_NAME}:ci"
 
       - name: Scan image vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
@@ -163,6 +168,8 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
+          no-cache-filters: runtime
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

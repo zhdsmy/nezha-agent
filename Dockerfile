@@ -7,7 +7,7 @@ ARG VERSION=2.3.3
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
-RUN apk add --no-cache ca-certificates unzip wget \
+RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle unzip wget \
     && case "${TARGETARCH}" in \
          amd64|arm64) AGENT_ARCH="${TARGETARCH}" ;; \
          *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
@@ -20,7 +20,7 @@ RUN apk add --no-cache ca-certificates unzip wget \
     && unzip -q "/tmp/${AGENT_FILE}" -d /tmp/nezha-agent \
     && install -m 0755 /tmp/nezha-agent/nezha-agent /usr/bin/nezha-agent
 
-FROM alpine:3.24
+FROM alpine:3.24 AS runtime
 
 ARG VERSION=2.3.3
 
@@ -30,7 +30,7 @@ LABEL org.opencontainers.image.title="nezha-agent" \
       org.opencontainers.image.source="https://github.com/zhdsmy/nezha-agent" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-RUN apk add --no-cache --upgrade ca-certificates docker-cli iproute2 iputils procps libcrypto3 libssl3
+RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle docker-cli iproute2 iputils procps libcrypto3 libssl3
 
 COPY --from=downloader /usr/bin/nezha-agent /usr/bin/nezha-agent
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
