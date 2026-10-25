@@ -3,6 +3,7 @@
 # Rebuild the same release with Go's fixed x509 verifier.
 # hadolint ignore=DL3029
 FROM --platform=$BUILDPLATFORM golang:1.26.10-alpine3.24 AS builder
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 ARG TARGETARCH
 ARG VERSION=2.4.0
 ARG SOURCE_REVISION=2c33791c40c81154da4eb972f1257faa8c4180e8
