@@ -8,7 +8,8 @@ ARG VERSION=2.4.0
 ARG SOURCE_REVISION=2c33791c40c81154da4eb972f1257faa8c4180e8
 ARG SOURCE_SHA256=2c5bc3ca28cf34a429814114ae12d0e6bf2b2ea5da792239128247edebc2f55b
 RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle
-ADD --checksum=sha256:${SOURCE_SHA256} https://codeload.github.com/nezhahq/agent/tar.gz/${SOURCE_REVISION} /tmp/source.tar.gz
+RUN wget -q -O /tmp/source.tar.gz "https://codeload.github.com/nezhahq/agent/tar.gz/${SOURCE_REVISION}" \
+    && echo "${SOURCE_SHA256}  /tmp/source.tar.gz" | sha256sum -c -
 RUN mkdir /src && tar -xzf /tmp/source.tar.gz --strip-components=1 -C /src
 WORKDIR /src
 RUN --mount=type=cache,target=/go/pkg/mod \
