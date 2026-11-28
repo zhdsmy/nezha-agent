@@ -5,9 +5,9 @@
 FROM --platform=$BUILDPLATFORM golang:1.26.11-alpine3.24 AS builder
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 ARG TARGETARCH
-ARG VERSION=2.4.0
-ARG SOURCE_REVISION=2c33791c40c81154da4eb972f1257faa8c4180e8
-ARG SOURCE_SHA256=2c5bc3ca28cf34a429814114ae12d0e6bf2b2ea5da792239128247edebc2f55b
+ARG VERSION=2.5.0
+ARG SOURCE_REVISION=4b0ff06ca4a518aebebb4044168b96fcbfcdc668
+ARG SOURCE_SHA256=690e879a66168e75de32b61a02496f6cf5630c33536114af7395af20907f11ba
 RUN apk add --no-cache --upgrade ca-certificates ca-certificates-bundle
 RUN wget -q -O /tmp/source.tar.gz "https://codeload.github.com/nezhahq/agent/tar.gz/${SOURCE_REVISION}" \
     && echo "${SOURCE_SHA256}  /tmp/source.tar.gz" | sha256sum -c -
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM alpine:3.24 AS runtime
 
-ARG VERSION=2.4.0
+ARG VERSION=2.5.0
 
 LABEL org.opencontainers.image.title="nezha-agent" \
       org.opencontainers.image.description="Docker image for Nezha Agent" \
